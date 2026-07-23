@@ -8,7 +8,7 @@
 
 <br>
 
-![Version](https://img.shields.io/badge/version-1.0.0-8b9ce0?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.1.0-8b9ce0?style=flat-square)
 ![Photoshop](https://img.shields.io/badge/Photoshop-2025%20%7C%202026-2d2d2d?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-UXP-2d2d2d?style=flat-square)
 ![Languages](https://img.shields.io/badge/DE%20%C2%B7%20EN%20%C2%B7%20RU-8b9ce0?style=flat-square)

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MANNA v1.0.0  — Daily Sabbath Bible Lesson for Photoshop (UXP)
+   MANNA v1.1.0  — Daily Sabbath Bible Lesson for Photoshop (UXP)
    © 2026 Sergio (Maestro). All rights reserved.
    --------------------------------------------------------------------------
    Lessons:  https://app.sdarm.org/sbl/data/<lang>/<lang>-<year>-<quarter>.json
