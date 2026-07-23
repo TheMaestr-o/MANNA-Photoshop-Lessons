@@ -190,7 +190,6 @@ body {
 .memverse .mv-text {
     font-family: var(--serif);
     font-size: 15px;
-    font-style: italic;
     line-height: 1.55;
     color: var(--scripture);
 }
@@ -256,7 +255,6 @@ body {
     margin-bottom: 10px;
     font-family: var(--serif);
     font-size: 15px;
-    font-style: italic;
     line-height: 1.62;
     color: var(--scripture);
 }
@@ -269,8 +267,8 @@ body {
     vertical-align: 3px;
     margin: 0 3px 0 1px;
 }
-.verse.loading { color: var(--faint); font-style: normal; font-family: inherit; }
-.verse.error { color: #c8a; border-left-color: #c8a; font-style: normal; font-family: inherit; }
+.verse.loading { color: var(--faint); font-family: inherit; }
+.verse.error { color: #c8a; border-left-color: #c8a; font-family: inherit; }
 
 /* EGW / commentary note — tertiary, quote-styled */
 .note {
