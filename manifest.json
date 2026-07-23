@@ -1,0 +1,55 @@
+{
+    "manifestVersion": 5,
+    "id": "com.maestro.manna",
+    "name": "MANNA",
+    "version": "1.0.0",
+    "main": "index.html",
+    "host": {
+        "app": "PS",
+        "minVersion": "24.4.0",
+        "data": {
+            "apiVersion": 2
+        }
+    },
+    "entrypoints": [
+        {
+            "type": "panel",
+            "id": "mannaPanel",
+            "label": {
+                "default": "MANNA"
+            },
+            "minimumSize": { "width": 260, "height": 360 },
+            "maximumSize": { "width": 900, "height": 1600 },
+            "preferredDockedSize": { "width": 320, "height": 620 },
+            "preferredFloatingSize": { "width": 360, "height": 680 },
+            "icons": [
+                {
+                    "width": 23,
+                    "height": 23,
+                    "path": "icons/icon.png",
+                    "scale": [1, 2],
+                    "theme": ["darkest", "dark", "medium", "lightest", "light", "all"]
+                }
+            ]
+        }
+    ],
+    "requiredPermissions": {
+        "localFileSystem": "plugin",
+        "network": {
+            "domains": [
+                "https://app.sdarm.org",
+                "https://api.getbible.net"
+            ]
+        }
+    },
+    "icons": [
+        {
+            "width": 48,
+            "height": 48,
+            "path": "icons/icon48.png",
+            "scale": [1, 2],
+            "theme": ["darkest", "dark", "medium", "lightest", "light", "all"],
+            "species": ["pluginList"]
+        }
+    ]
+}

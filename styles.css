@@ -1,0 +1,281 @@
+/* ==========================================================================
+   MANNA — Daily Sabbath Bible Lesson panel for Photoshop (UXP)
+   © 2026 Sergio (Maestro). All rights reserved.
+   Calm periwinkle accent; built on UXP-safe CSS (no gap, no flex-wrap,
+   div-buttons, explicit sizes).
+   ========================================================================== */
+
+:root {
+    --bg:        #1c1c1e;
+    --card:      #26262a;
+    --line:      #3a3a40;
+    --text:      #d6d6da;
+    --dim:       #8b8b93;
+    --faint:     #6a6a72;
+    --accent:    #8b9ce0;
+    --accent-dk: #5c6fad;
+    --verse-bg:  rgba(139,156,224,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+*:focus { outline: none; }
+
+html, body {
+    height: 100%;
+    background-color: var(--bg);
+    overflow: hidden;
+}
+
+body {
+    color: var(--text);
+    font-family: "Adobe Clean", "SF Pro Text", -apple-system, "Segoe UI", sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.app {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- Top navigation bar ------------------------------------------------- */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--bg);
+}
+
+.nav-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--dim);
+    font-size: 24px;
+    font-weight: 300;
+    cursor: pointer;
+}
+.nav-btn:hover { color: var(--text); background-color: var(--card); }
+.nav-btn:active { transform: scale(0.94); }
+
+.nav-center {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    text-align: center;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 8px;
+}
+.nav-center:hover { background-color: var(--card); }
+
+.nav-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.2px;
+}
+.nav-sub {
+    font-size: 10px;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 1px;
+}
+.nav-center.is-today .nav-sub { color: var(--accent); }
+
+/* ---- Language segmented control ---------------------------------------- */
+
+.langbar {
+    display: flex;
+    height: 30px;
+    margin: 8px 10px 2px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.lang-opt {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--dim);
+    cursor: pointer;
+}
+.lang-opt + .lang-opt { border-left: 1px solid var(--line); }
+.lang-opt:hover { color: var(--text); }
+.lang-opt.active {
+    background-color: var(--accent-dk);
+    color: #fff;
+}
+
+/* ---- Scroll area -------------------------------------------------------- */
+
+.scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 12px 4px;
+}
+
+/* ---- Lesson header ------------------------------------------------------ */
+
+.lesson-kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+.lesson-title {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+/* Memory verse card */
+.memverse {
+    background-color: var(--card);
+    border-left: 3px solid var(--accent-dk);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+}
+.memverse .mv-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+.memverse .mv-text {
+    font-size: 13.5px;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--text);
+}
+.memverse .mv-ref {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dim);
+    margin-top: 5px;
+}
+
+/* ---- Day section -------------------------------------------------------- */
+
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 4px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+}
+
+/* ---- Q & A block -------------------------------------------------------- */
+
+.qa { margin-bottom: 18px; }
+
+.question {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.vref {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 3px;
+}
+
+/* the answer — scripture */
+.verse {
+    background-color: var(--verse-bg);
+    border-left: 2px solid var(--accent);
+    border-radius: 5px;
+    padding: 8px 11px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    font-style: italic;
+    line-height: 1.55;
+    color: var(--text);
+}
+.verse .vnum {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 9px;
+    color: var(--accent);
+    vertical-align: super;
+    margin-right: 2px;
+}
+.verse.loading { color: var(--faint); font-style: normal; }
+.verse.error { color: #c98; border-left-color: #c98; }
+
+/* EGW / commentary note — secondary */
+.note {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--dim);
+    padding-left: 11px;
+    border-left: 1px solid var(--line);
+    margin-bottom: 4px;
+}
+
+/* Review questions (Friday) */
+.review-item {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 9px;
+}
+
+/* Recommended reading */
+.reading {
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: 4px;
+}
+.reading .rd-label { font-weight: 600; color: var(--text); }
+
+/* ---- States ------------------------------------------------------------- */
+
+.msg {
+    text-align: center;
+    color: var(--faint);
+    font-size: 12px;
+    padding: 40px 20px;
+    line-height: 1.6;
+}
+.msg.error { color: #c98; }
+
+.foot {
+    text-align: center;
+    font-size: 9px;
+    color: var(--faint);
+    padding: 14px 0 10px;
+    opacity: 0.7;
+}
