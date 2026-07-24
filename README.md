@@ -8,11 +8,15 @@
 
 <br>
 
-![Version](https://img.shields.io/badge/version-1.1.0-8b9ce0?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.3.0-8b9ce0?style=flat-square)
 ![Photoshop](https://img.shields.io/badge/Photoshop-2025%20%7C%202026-2d2d2d?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-UXP-2d2d2d?style=flat-square)
 ![Languages](https://img.shields.io/badge/DE%20%C2%B7%20EN%20%C2%B7%20RU-8b9ce0?style=flat-square)
 ![License](https://img.shields.io/badge/license-Free-4caf50?style=flat-square)
+
+<br>
+
+<img src="screenshots/hero.png" alt="MANNA — daily Sabbath Bible Lesson panel for Adobe Photoshop, full-day and bilingual card modes">
 
 </div>
 
@@ -20,35 +24,34 @@
 
 ## What it is
 
-A quiet reading panel that shows **today's** Sabbath Bible Lesson right in Photoshop — one day at a time. Each day is presented the way the lesson is meant to be studied:
+A quiet reading panel that brings **today's** Sabbath Bible Lesson into Photoshop — with the actual Bible verses, not just references, pulled live from the official [Sabbath Bible Lessons](https://sbl.sdarm.org) data in **German, English and Russian**.
 
-> **Question** → **Scripture answer** (the full verse, not just a reference) → **Commentary**
+## Two ways to read
 
-Fresh content every day, pulled live from the official [Sabbath Bible Lessons](https://sbl.sdarm.org) data, in **German, English or Russian**.
+**📖 Full day** — the whole day at once: memory verse, questions, each verse in full, and the commentary. One language, scroll.
+
+**🔀 Bilingual cards** — step sideways through the day one piece at a time: **question → verse → verse → commentary**, each shown in **two languages at once** (top / bottom, whichever pair you pick). Made for comparing translations and slow, careful study.
 
 ## How it works
 
 | | |
 |---|---|
-| **‹ ›** | Step one day back / forward. Crossing a quarter loads the next set automatically |
-| **Date** | Tap the date in the middle to jump back to **today** |
-| **DE · EN · RU** | Switch language instantly — lesson *and* Bible verses follow |
-| **Scripture** | Each reference is expanded to the actual verse text — Schlachter (DE), KJV (EN), Synodal (RU) |
+| **‹ ›** | Step through the day. In cards mode each tap is one step; crossing into the next day is seamless |
+| **Date** | Tap the date to jump back to **today** |
+| **DE · EN · RU** | Pick your language — in cards mode pick two (top and bottom), **⇅** swaps them |
+| **Scripture** | Exact SDARM text: Luther 1912 (DE), King James (EN), Synodal (RU) |
 
 The current quarter is cached, so once opened it also works offline.
 
 ## Install
 
-Download the panel, drop it into your Adobe UXP plugins folder, restart Photoshop, and open **Plugins → MANNA**.
+Download `com.maestro.manna_x.y.z.ccx` from [**Releases**](../../releases), double-click, and Creative Cloud installs it. Open **Plugins → MANNA**. Requires Photoshop 2025 / 2026 and internet on first open.
 
-- **macOS:** `~/Library/Application Support/Adobe/UXP/Plugins/External/com.maestro.manna`
-- Or load `manifest.json` via the **UXP Developer Tool**.
-
-Requires Photoshop 2025 / 2026 and an internet connection on first open.
+Or load `manifest.json` via the UXP Developer Tool.
 
 ## Notes
 
-- Lesson content © [Seventh Day Adventist Reform Movement](https://sdarm.org); Bible text from [getbible.net](https://getbible.net). MANNA is an independent reader, not affiliated with SDARM.
+- Lesson content © [Seventh Day Adventist Reform Movement](https://sdarm.org); Bible text from SDARM's own editions. MANNA is an independent reader, not affiliated with SDARM.
 - Daily readings run Sunday–Friday; the Sabbath shows the week's overview and memory verse.
 
 ## Support & Contact

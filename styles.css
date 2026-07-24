@@ -29,6 +29,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+.hidden { display: none !important; }
 *:focus { outline: none; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 
@@ -91,6 +92,25 @@ body {
 }
 .nav-center:hover { background-color: var(--card); }
 
+.mode-btn,
+.swap-btn {
+    width: 56px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 6px;
+    border-radius: 10px;
+    background-color: var(--card);
+    color: var(--dim);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+.mode-btn:hover,
+.swap-btn:hover { color: var(--ink); background-color: rgba(152,167,232,0.15); }
+
 .nav-date {
     font-size: 15px;
     font-weight: 600;
@@ -139,6 +159,67 @@ body {
     background-color: var(--accent-dk);
     color: #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+
+/* Cards mode: bilingual, stepped. Top language and bottom language stacked,
+   split by a hairline — no language badges (you chose them, you know them). */
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 14px;
+}
+.card-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-right: 10px;
+}
+.card-counter {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--faint);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+}
+.card-shell {
+    background-color: var(--card);
+    border-radius: 14px;
+    padding: 16px;
+}
+.card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 11px;
+}
+.bi-sep {
+    height: 1px;
+    background-color: var(--hair);
+    margin: 13px 0;
+}
+.c-text,
+.c-verse {
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--scripture);
+}
+.c-verse.loading { color: var(--faint); }
+.c-verse.error   { color: #c8a; }
+.c-verse .vnum {
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    font-size: 8.5px;
+    color: var(--accent);
+    vertical-align: 3px;
+    margin: 0 3px 0 1px;
 }
 
 /* ---- Scroll area -------------------------------------------------------- */

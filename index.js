@@ -1,17 +1,21 @@
 /* ==========================================================================
-   MANNA v1.1.0  — Daily Sabbath Bible Lesson for Photoshop (UXP)
+   MANNA v1.3.0  — Daily Sabbath Bible Lesson for Photoshop (UXP)
    © 2026 Sergio (Maestro). All rights reserved.
    --------------------------------------------------------------------------
    Lessons:  https://app.sdarm.org/sbl/data/<lang>/<lang>-<year>-<quarter>.json
-   Verses:   https://api.getbible.net/v2/<translation>/<booknr>/<chapter>.json
-   One day at a time: question → scripture answer → commentary.
+   Verses:   https://app.sdarm.org/bible/data/<lang>-<version>.json (exact SDARM text)
+   Two modes:
+     · DAY   — the whole day, one language, scroll.
+     · CARDS — step sideways (question → verse → verse → commentary),
+               shown in TWO languages at once (top / bottom, your choice).
    ========================================================================== */
 
 /* ---------------- config ---------------- */
 
 const LANGS = ["de", "en", "ru"];
 const LOCALE = { de: "de-DE", en: "en-US", ru: "ru-RU" };
-const BIBLE  = { de: "schlachter", en: "kjv", ru: "synodal" };
+// SDARM's own Bible versions — exact match to sbl.sdarm.org
+const BIBLE  = { de: "de-lut", en: "en-kjv", ru: "ru-rst" };
 const T = {
     today:   { de: "Heute",  en: "Today",  ru: "Сегодня" },
     loading: { de: "Laden…", en: "Loading…", ru: "Загрузка…" },
@@ -21,29 +25,35 @@ const T = {
     offline: { de: "Keine Verbindung. Bitte später erneut versuchen.",
                en: "No connection. Please try again later.",
                ru: "Нет соединения. Попробуйте позже." },
-    sabbath: { de: "Sabbat", en: "Sabbath", ru: "Суббота" }
+    sabbath: { de: "Sabbat", en: "Sabbath", ru: "Суббота" },
+    cards:   { de: "CARDS", en: "CARDS", ru: "КАРТЫ" },
+    day:     { de: "DAY", en: "DAY", ru: "ДЕНЬ" }
 };
 
-/* OSIS book id → canonical number (1–66, getbible order) */
-const OSIS = {
-    Gen:1,Exod:2,Lev:3,Num:4,Deut:5,Josh:6,Judg:7,Ruth:8,"1Sam":9,"2Sam":10,
-    "1Kgs":11,"2Kgs":12,"1Chr":13,"2Chr":14,Ezra:15,Neh:16,Esth:17,Job:18,
-    Ps:19,Prov:20,Eccl:21,Song:22,Isa:23,Jer:24,Lam:25,Ezek:26,Dan:27,Hos:28,
-    Joel:29,Amos:30,Obad:31,Jonah:32,Mic:33,Nah:34,Hab:35,Zeph:36,Hag:37,
-    Zech:38,Mal:39,Matt:40,Mark:41,Luke:42,John:43,Acts:44,Rom:45,"1Cor":46,
-    "2Cor":47,Gal:48,Eph:49,Phil:50,Col:51,"1Thess":52,"2Thess":53,"1Tim":54,
-    "2Tim":55,Titus:56,Phlm:57,Heb:58,Jas:59,"1Pet":60,"2Pet":61,"1John":62,
-    "2John":63,"3John":64,Jude:65,Rev:66
+// content-type kicker per card (shown in the top language)
+const KIND = {
+    question:   { de: "Frage", en: "Question", ru: "Вопрос" },
+    commentary: { de: "Kommentar", en: "Commentary", ru: "Комментарий" },
+    review:     { de: "Wiederholung", en: "Review", ru: "Повторение" },
+    memory:     { de: "Leittext", en: "Key Text", ru: "Памятный стих" }
 };
 
 /* ---------------- state ---------------- */
 
-let lang = localStorage.getItem("manna.lang") || "de";
+let lang = localStorage.getItem("manna.lang") || "de";       // top language
 if (LANGS.indexOf(lang) === -1) lang = "de";
+let bottomLang = localStorage.getItem("manna.lang2") || "ru"; // bottom language
+if (LANGS.indexOf(bottomLang) === -1 || bottomLang === lang) {
+    bottomLang = lang === "de" ? "ru" : "de";
+}
+let currentMode = localStorage.getItem("manna.mode") || "full"; // full | cards
 let current = new Date();          // the day being viewed
 const quarters = {};               // `${lang}-${y}-${q}` -> data
-const verses = {};                 // `${transl}/${nr}/${chap}` -> chapter json
+const bibles = {};                 // versionId -> Promise<bible json>
 let renderToken = 0;               // guards against out-of-order async renders
+let cardSteps = [];
+let cardIndex = 0;
+let cardContextKey = "";
 
 /* ---------------- dom ---------------- */
 
@@ -98,7 +108,6 @@ async function loadQuarter(l, y, q) {
         try { localStorage.setItem("manna.q." + key, JSON.stringify(data)); } catch (e) {}
         return data;
     } catch (e) {
-        // offline fallback
         try {
             const cached = localStorage.getItem("manna.q." + key);
             if (cached) { quarters[key] = JSON.parse(cached); return quarters[key]; }
@@ -107,15 +116,15 @@ async function loadQuarter(l, y, q) {
     }
 }
 
-// Find the lesson/day for a date, searching this quarter and its neighbours
-// (daily readings run Sun–Fri BEFORE the Sabbath, so a date can live in an
-// adjacent quarter file).
-async function findDay(d) {
+// Find the lesson/day for a date in a given language, searching this quarter
+// and its neighbours (daily readings run Sun–Fri BEFORE the Sabbath, so a
+// date can live in an adjacent quarter file).
+async function findDayFor(d, l) {
     const target = ymd(d);
     const cand = neighbors(d.getFullYear(), quarterOf(d));
     let sawData = false;
     for (let i = 0; i < cand.length; i++) {
-        const data = await loadQuarter(lang, cand[i][0], cand[i][1]);
+        const data = await loadQuarter(l, cand[i][0], cand[i][1]);
         if (!data || !data.lessons) continue;
         sawData = true;
         for (const lesson of data.lessons) {
@@ -128,6 +137,7 @@ async function findDay(d) {
     }
     return { type: sawData ? "none" : "offline" };
 }
+function findDay(d) { return findDayFor(d, lang); }
 
 /* ---------------- bible verses ---------------- */
 
@@ -142,46 +152,72 @@ function parseSeg(seg) {
     };
 }
 
-async function loadChapter(nr, chap) {
-    const transl = BIBLE[lang];
-    const key = transl + "/" + nr + "/" + chap;
-    if (verses[key]) return verses[key];
-    const url = "https://api.getbible.net/v2/" + transl + "/" + nr + "/" + chap + ".json";
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const data = await r.json();
-    verses[key] = data;
-    return data;
+// Whole Bible per version (~4–6 MB), fetched once per session, kept in memory.
+// Books are keyed by OSIS id; each is [chapter][verse] of strings.
+function loadBible(version) {
+    if (bibles[version]) return bibles[version];
+    const url = "https://app.sdarm.org/bible/data/" + version + ".json";
+    bibles[version] = fetch(url).then((r) => {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+    }).catch((e) => { delete bibles[version]; throw e; });
+    return bibles[version];
 }
 
-async function getVerseHtml(sOsis) {
+async function getVerseFor(sOsis, language) {
+    const bible = await loadBible(BIBLE[language]);
+    const books = (bible && bible.books) || {};
     const parts = String(sOsis).split(",");
-    let out = "";
+    const rows = [];
     for (const raw of parts) {
         const seg = parseSeg(raw.trim());
-        const nr = OSIS[seg.book];
-        if (!nr) continue;
+        const chapters = books[seg.book];
+        if (!chapters) continue;
         for (let c = seg.chap; c <= seg.echap; c++) {
-            const data = await loadChapter(nr, c);
+            const vs = chapters[c - 1];
+            if (!vs) continue;
             const from = (c === seg.chap) ? seg.v1 : 1;
-            const to   = (c === seg.echap) ? seg.v2 : 9999;
-            for (const v of (data.verses || [])) {
-                if (v.verse >= from && v.verse <= to) {
-                    out += '<span class="vnum">' + v.verse + '</span>' +
-                        esc(v.text.trim()) + " ";
-                }
+            const to = (c === seg.echap) ? seg.v2 : vs.length;
+            for (let n = from; n <= to; n++) {
+                const t = vs[n - 1];
+                if (t == null) continue;
+                rows.push({ verse: n, text: String(t).trim() });
             }
         }
     }
-    return out.trim();
+    return rows;
 }
 
-/* ---------------- rendering ---------------- */
+function expandVerseRefs(sOsis) {
+    const refs = [];
+    const parts = String(sOsis).split(",");
+    for (const raw of parts) {
+        const seg = parseSeg(raw.trim());
+        for (let c = seg.chap; c <= seg.echap; c++) {
+            const from = (c === seg.chap) ? seg.v1 : 1;
+            const to = (c === seg.echap) ? seg.v2 : 9999;
+            for (let n = from; n <= to; n++) refs.push(seg.book + "." + c + "." + n);
+        }
+    }
+    return refs;
+}
+
+/* ---------------- helpers ---------------- */
 
 function esc(s) {
     return String(s == null ? "" : s)
         .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+function normalizeBottomLang() {
+    if (bottomLang === lang) {
+        bottomLang = LANGS.find((l) => l !== lang) || lang;
+    }
+}
+function versesHtml(rows) {
+    return rows.map((r) => '<span class="vnum">' + r.verse + '</span>' + esc(r.text)).join(" ");
+}
+
+/* ---------------- full-day mode ---------------- */
 
 function memVerseHtml(lesson) {
     const kt = lesson.keyText || {};
@@ -189,23 +225,18 @@ function memVerseHtml(lesson) {
     const ref = (kt.ref && kt.ref.text) || "";
     if (!text) return "";
     return '<div class="memverse">' +
-        '<div class="mv-label">' + esc(refWord()) + '</div>' +
+        '<div class="mv-label">' + esc({ de: "Leittext", en: "Key Text", ru: "Памятный стих" }[lang]) + '</div>' +
         '<div class="mv-text">' + esc(text) + '</div>' +
         (ref ? '<div class="mv-ref">' + esc(ref) + '</div>' : "") +
         '</div>';
 }
-function refWord() {
-    return { de: "Leittext", en: "Key Text", ru: "Памятный стих" }[lang];
-}
 
 function lessonHead(lesson) {
-    const kicker = lesson.header || "";
-    return '<div class="lesson-kicker">' + esc(kicker) + '</div>' +
+    return '<div class="lesson-kicker">' + esc(lesson.header || "") + '</div>' +
         '<div class="lesson-title">' + esc(lesson.title || "") + '</div>' +
         memVerseHtml(lesson);
 }
 
-// Returns { html, tasks:[{id,sOsis}] }
 function renderContent(info) {
     if (info.type === "offline") return { html: '<div class="msg error">' + esc(T.offline[lang]) + '</div>', tasks: [] };
     if (info.type === "none")    return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [] };
@@ -215,7 +246,6 @@ function renderContent(info) {
     let html = lessonHead(info.lesson);
 
     if (info.type === "sabbath") {
-        // Sabbath = weekly overview
         html += '<div class="section-title">' + esc(T.sabbath[lang]) + '</div>';
         if (info.lesson.keyNote && info.lesson.keyNote.text) {
             html += '<div class="note">' + esc(info.lesson.keyNote.text) + '</div>';
@@ -229,19 +259,15 @@ function renderContent(info) {
         return { html, tasks };
     }
 
-    // Weekday
     const day = info.day;
-    if (day.sectionTitle) {
-        html += '<div class="section-title">' + esc(day.sectionTitle) + '</div>';
-    }
+    if (day.sectionTitle) html += '<div class="section-title">' + esc(day.sectionTitle) + '</div>';
 
-    const subs = day.subsections || [];
-    for (const sub of subs) {
+    for (const sub of (day.subsections || [])) {
         html += '<div class="qa">';
         for (const q of (sub.q || [])) {
             if (q.sOsis) {
                 const id = "v" + (vid++);
-                tasks.push({ id, sOsis: q.sOsis });
+                tasks.push({ id: id, sOsis: q.sOsis });
                 html += '<div class="vref">' + esc(q.text || "") + '</div>';
                 html += '<div class="verse loading" id="' + id + '">' + esc(T.loading[lang]) + '</div>';
             } else if (q.text) {
@@ -257,19 +283,117 @@ function renderContent(info) {
         html += '</div>';
     }
 
-    // Friday review questions
-    const rq = day.reviewQuestions || [];
-    if (rq.length) {
-        for (const q of rq) html += '<div class="review-item">' + esc(q) + '</div>';
+    for (const q of (day.reviewQuestions || [])) {
+        if (q) html += '<div class="review-item">' + esc(q) + '</div>';
     }
 
     return { html, tasks };
 }
 
+/* ---------------- cards mode (bilingual, step by step) ---------------- */
+
+function buildCardSteps(infoTop, infoBottom) {
+    const steps = [];
+    if (infoTop.type === "sabbath") {
+        const lt = infoTop.lesson || {};
+        const lb = (infoBottom && infoBottom.lesson) || {};
+        const tt = (lt.keyText && lt.keyText.text) || lt.keyTextVerse || "";
+        const tb = (lb.keyText && lb.keyText.text) || lb.keyTextVerse || "";
+        if (tt) steps.push({ type: "text", kind: "memory", top: tt, bottom: tb });
+        return steps;
+    }
+    if (infoTop.type !== "day") return steps;
+
+    const subsT = (infoTop.day && infoTop.day.subsections) || [];
+    const subsB = (infoBottom && infoBottom.day && infoBottom.day.subsections) || [];
+    for (let i = 0; i < subsT.length; i++) {
+        const st = subsT[i], sb = subsB[i] || {};
+        const qT = st.q || [], qB = sb.q || [];
+        for (let j = 0; j < qT.length; j++) {
+            const q = qT[j];
+            if (q.sOsis) {
+                const refTop = (q.text || "").trim();
+                for (const one of expandVerseRefs(q.sOsis)) {
+                    steps.push({ type: "verse", sOsis: one, refTop: refTop });
+                }
+            } else if (q.text) {
+                steps.push({ type: "text", kind: "question", top: q.text, bottom: (qB[j] && qB[j].text) || "" });
+            }
+        }
+        const exT = st.question || [], exB = sb.question || [];
+        for (let j = 0; j < exT.length; j++) {
+            if (exT[j] && exT[j].text) {
+                steps.push({ type: "text", kind: "question", top: exT[j].text, bottom: (exB[j] && exB[j].text) || "" });
+            }
+        }
+        const nT = st.note || [], nB = sb.note || [];
+        for (let j = 0; j < nT.length; j++) {
+            if (nT[j] && nT[j].text) {
+                steps.push({ type: "text", kind: "commentary", top: nT[j].text, bottom: (nB[j] && nB[j].text) || "" });
+            }
+        }
+    }
+    const rT = (infoTop.day && infoTop.day.reviewQuestions) || [];
+    const rB = (infoBottom && infoBottom.day && infoBottom.day.reviewQuestions) || [];
+    for (let j = 0; j < rT.length; j++) {
+        if (rT[j]) steps.push({ type: "text", kind: "review", top: rT[j], bottom: rB[j] || "" });
+    }
+    return steps;
+}
+
+function vId(sOsis, l) { return "cs-" + sOsis + "-" + l; }
+
+function renderCardStep(step) {
+    let kicker = "";
+    let body = "";
+    if (step.type === "verse") {
+        kicker = step.refTop || "";
+        const top = '<div class="c-verse loading" id="' + vId(step.sOsis, lang) + '">' + esc(T.loading[lang]) + '</div>';
+        const bot = '<div class="c-verse loading" id="' + vId(step.sOsis, bottomLang) + '">' + esc(T.loading[lang]) + '</div>';
+        body = '<div class="bi">' + top + '<div class="bi-sep"></div>' + bot + '</div>';
+    } else {
+        kicker = (KIND[step.kind] && KIND[step.kind][lang]) || "";
+        const top = '<div class="c-text">' + esc(step.top) + '</div>';
+        const bot = '<div class="c-text">' + esc(step.bottom) + '</div>';
+        body = '<div class="bi">' + top + '<div class="bi-sep"></div>' + bot + '</div>';
+    }
+    return '<div class="card-shell">' +
+        (kicker ? '<div class="card-label">' + esc(kicker) + '</div>' : "") +
+        body + '</div>';
+}
+
+function renderCards(infoTop, infoBottom) {
+    if (infoTop.type === "offline") return { html: '<div class="msg error">' + esc(T.offline[lang]) + '</div>', tasks: [] };
+    if (infoTop.type === "none")    return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [] };
+
+    const ctx = ymd(current) + "|" + lang + "|" + bottomLang;
+    if (cardContextKey !== ctx) {
+        cardSteps = buildCardSteps(infoTop, infoBottom);
+        cardContextKey = ctx;
+    }
+    if (!cardSteps.length) return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [] };
+    if (cardIndex < 0) cardIndex = cardSteps.length - 1;
+    if (cardIndex >= cardSteps.length) cardIndex = 0;
+
+    const step = cardSteps[cardIndex];
+    let html = '<div class="card-header">';
+    html += '<div class="card-title">' + esc((infoTop.lesson && infoTop.lesson.title) || "") + '</div>';
+    html += '<div class="card-counter">' + (cardIndex + 1) + ' / ' + cardSteps.length + '</div>';
+    html += '</div>';
+    html += renderCardStep(step);
+
+    const tasks = step.type === "verse" ? [
+        { id: vId(step.sOsis, lang), sOsis: step.sOsis, language: lang },
+        { id: vId(step.sOsis, bottomLang), sOsis: step.sOsis, language: bottomLang }
+    ] : [];
+    return { html, tasks };
+}
+
+/* ---------------- render ---------------- */
+
 async function render() {
     const token = ++renderToken;
 
-    // header
     navDate.textContent = fmtDate(current);
     const isToday = sameDay(current, new Date());
     navCenter.classList.toggle("is-today", isToday);
@@ -280,50 +404,141 @@ async function render() {
     const info = await findDay(current);
     if (token !== renderToken) return;
 
-    const { html, tasks } = renderContent(info);
-    contentEl.innerHTML = html;
+    let result;
+    if (currentMode === "cards") {
+        const infoBottom = await findDayFor(current, bottomLang);
+        if (token !== renderToken) return;
+        result = renderCards(info, infoBottom);
+    } else {
+        result = renderContent(info);
+    }
+
+    contentEl.innerHTML = result.html;
     footEl.textContent = "MANNA · Sabbath Bible Lessons";
 
     // fill verses asynchronously
-    for (const t of tasks) {
-        getVerseHtml(t.sOsis).then((vh) => {
+    for (const t of result.tasks) {
+        const taskLang = t.language || lang;
+        getVerseFor(t.sOsis, taskLang).then((rows) => {
             if (token !== renderToken) return;
             const el = $(t.id);
             if (!el) return;
-            if (vh) { el.className = "verse"; el.innerHTML = vh; }
-            else { el.className = "verse error"; el.textContent = "—"; }
+            if (t.language) {                       // bilingual card verse
+                el.classList.remove("loading");
+                if (rows.length) { el.innerHTML = versesHtml(rows); }
+                else { el.classList.add("error"); el.textContent = "—"; }
+            } else {                                // full-day verse
+                if (rows.length) { el.className = "verse"; el.innerHTML = versesHtml(rows); }
+                else { el.className = "verse error"; el.textContent = "—"; }
+            }
         }).catch(() => {
             if (token !== renderToken) return;
             const el = $(t.id);
-            if (el) { el.className = "verse error"; el.textContent = "—"; }
+            if (!el) return;
+            if (t.language) { el.classList.remove("loading"); el.classList.add("error"); el.textContent = "—"; }
+            else { el.className = "verse error"; el.textContent = "—"; }
         });
     }
 }
 
 /* ---------------- events ---------------- */
 
-$("prev").addEventListener("click", () => { current = addDays(current, -1); render(); });
-$("next").addEventListener("click", () => { current = addDays(current, 1); render(); });
-navCenter.addEventListener("click", () => { current = new Date(); render(); });
+$("prev").addEventListener("click", () => {
+    if (currentMode === "cards" && cardSteps.length) {
+        if (cardIndex <= 0) { current = addDays(current, -1); cardIndex = -1; }
+        else cardIndex--;
+        render();
+        return;
+    }
+    current = addDays(current, -1);
+    render();
+});
+$("next").addEventListener("click", () => {
+    if (currentMode === "cards" && cardSteps.length) {
+        if (cardIndex >= cardSteps.length - 1) { current = addDays(current, 1); cardIndex = 0; }
+        else cardIndex++;
+        render();
+        return;
+    }
+    current = addDays(current, 1);
+    render();
+});
+navCenter.addEventListener("click", () => {
+    current = new Date();
+    cardIndex = 0;
+    render();
+});
 
-document.querySelectorAll(".lang-opt").forEach((el) => {
+$("mode-toggle").addEventListener("click", () => {
+    currentMode = currentMode === "cards" ? "full" : "cards";
+    localStorage.setItem("manna.mode", currentMode);
+    cardIndex = 0;
+    cardContextKey = "";
+    setModeUI();
+    render();
+});
+$("swap-lang").addEventListener("click", () => {
+    const tmp = lang; lang = bottomLang; bottomLang = tmp;
+    localStorage.setItem("manna.lang", lang);
+    localStorage.setItem("manna.lang2", bottomLang);
+    cardContextKey = "";
+    setLangUI();
+    setModeUI();
+    render();
+});
+
+document.querySelectorAll(".lang-opt:not(.lang2-opt)").forEach((el) => {
     el.addEventListener("click", () => {
         const l = el.dataset.lang;
         if (l === lang) return;
+        if (l === bottomLang) bottomLang = lang; // swap instead of colliding
         lang = l;
         localStorage.setItem("manna.lang", lang);
+        localStorage.setItem("manna.lang2", bottomLang);
+        cardContextKey = "";
         setLangUI();
+        setModeUI();
+        render();
+    });
+});
+document.querySelectorAll(".lang2-opt").forEach((el) => {
+    el.addEventListener("click", () => {
+        const l = el.dataset.lang;
+        if (l === bottomLang) return;
+        if (l === lang) lang = bottomLang; // swap instead of colliding
+        bottomLang = l;
+        localStorage.setItem("manna.lang", lang);
+        localStorage.setItem("manna.lang2", bottomLang);
+        cardContextKey = "";
+        setLangUI();
+        setModeUI();
         render();
     });
 });
 
+/* ---------------- ui state ---------------- */
+
 function setLangUI() {
-    document.querySelectorAll(".lang-opt").forEach((el) => {
+    normalizeBottomLang();
+    document.querySelectorAll(".lang-opt:not(.lang2-opt)").forEach((el) => {
         el.classList.toggle("active", el.dataset.lang === lang);
     });
+    document.querySelectorAll(".lang2-opt").forEach((el) => {
+        el.classList.toggle("active", el.dataset.lang === bottomLang);
+    });
+}
+
+function setModeUI() {
+    const modeBtn = $("mode-toggle");
+    const swapBtn = $("swap-lang");
+    if (!modeBtn || !swapBtn) return;
+    modeBtn.textContent = currentMode === "cards" ? T.day[lang] : T.cards[lang];
+    $("langbar-alt").classList.toggle("hidden", currentMode !== "cards");
+    swapBtn.classList.toggle("hidden", currentMode !== "cards");
 }
 
 /* ---------------- init ---------------- */
 
 setLangUI();
+setModeUI();
 render();
