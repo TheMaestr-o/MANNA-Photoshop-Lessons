@@ -7,34 +7,47 @@
 <body>
     <div class="app">
 
-        <!-- Top bar: day navigation -->
-        <div class="navbar">
+        <!-- Top bar: day nav + settings -->
+        <div class="topbar">
             <div class="nav-btn" id="prev" title="Previous day" role="button" tabindex="-1">‹</div>
             <div class="nav-center" id="nav-center" role="button" tabindex="-1" title="Jump to today">
                 <div class="nav-date" id="nav-date">—</div>
                 <div class="nav-sub" id="nav-sub"></div>
             </div>
-            <div class="mode-btn" id="mode-toggle" title="Switch mode" role="button" tabindex="-1">CARDS</div>
-            <div class="swap-btn" id="swap-lang" title="Swap top/bottom languages" role="button" tabindex="-1">⇅</div>
             <div class="nav-btn" id="next" title="Next day" role="button" tabindex="-1">›</div>
+            <div class="burger" id="burger" title="Settings" role="button" tabindex="-1">≡</div>
         </div>
 
-        <!-- Language segmented control -->
-        <div class="langbar" id="langbar">
-            <div class="lang-opt" data-lang="de" role="button" tabindex="-1">DE</div>
-            <div class="lang-opt" data-lang="en" role="button" tabindex="-1">EN</div>
-            <div class="lang-opt" data-lang="ru" role="button" tabindex="-1">RU</div>
-        </div>
-        <div class="langbar langbar-alt hidden" id="langbar-alt">
-            <div class="lang-opt lang2-opt" data-lang="de" role="button" tabindex="-1">DE</div>
-            <div class="lang-opt lang2-opt" data-lang="en" role="button" tabindex="-1">EN</div>
-            <div class="lang-opt lang2-opt" data-lang="ru" role="button" tabindex="-1">RU</div>
+        <!-- Settings drawer (hidden until burger tapped) -->
+        <div class="drawer hidden" id="drawer">
+            <div class="seg" id="mode-seg">
+                <div class="seg-opt" data-mode="full" role="button" tabindex="-1">DAY</div>
+                <div class="seg-opt" data-mode="cards" role="button" tabindex="-1">CARDS</div>
+            </div>
+            <div class="langrow" id="langrow-top">
+                <div class="lang-opt" data-lang="de" role="button" tabindex="-1">DE</div>
+                <div class="lang-opt" data-lang="en" role="button" tabindex="-1">EN</div>
+                <div class="lang-opt" data-lang="ru" role="button" tabindex="-1">RU</div>
+            </div>
+            <div class="langrow langrow-bot hidden" id="langrow-bot">
+                <div class="lang-opt lang2-opt" data-lang="de" role="button" tabindex="-1">DE</div>
+                <div class="lang-opt lang2-opt" data-lang="en" role="button" tabindex="-1">EN</div>
+                <div class="lang-opt lang2-opt" data-lang="ru" role="button" tabindex="-1">RU</div>
+                <div class="swap-btn" id="swap-lang" title="Swap" role="button" tabindex="-1">⇅</div>
+            </div>
         </div>
 
         <!-- Scrollable content -->
         <div class="scroll" id="scroll">
             <div id="content"></div>
             <div class="foot" id="foot"></div>
+        </div>
+
+        <!-- Card stepper (cards mode only) -->
+        <div class="stepbar hidden" id="stepbar">
+            <div class="step-btn" id="step-prev" title="Previous" role="button" tabindex="-1">‹</div>
+            <div class="step-label" id="step-label"></div>
+            <div class="step-btn" id="step-next" title="Next" role="button" tabindex="-1">›</div>
         </div>
 
     </div>

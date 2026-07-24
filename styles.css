@@ -1,28 +1,30 @@
 /* ==========================================================================
    MANNA — Daily Sabbath Bible Lesson panel for Photoshop (UXP)
    © 2026 Sergio (Maestro). All rights reserved.
-   Editorial "scripture reader": scripture in warm serif, question and
-   commentary in a clear cool hierarchy. UXP-safe CSS.
+   Editorial "scripture reader" — warm gold on near-black, cream scripture.
+   Compact chrome: one top row, settings behind a burger, a clear bottom
+   stepper for card navigation. UXP-safe CSS (no gap / flex-wrap; div buttons).
    ========================================================================== */
 
 :root {
     --bg:        #17171b;
-    --bg-bar:    #1b1b20;
-    --card:      #22232a;
-    --line:      #303038;
-    --hair:      #2a2a31;
+    --bg-bar:    #1c1b19;
+    --card:      #262421;
+    --line:      #38352f;
+    --hair:      #2b2925;
 
-    --ink:       #dcdce2;   /* primary UI text */
-    --ink-soft:  #b7b7c0;
-    --dim:       #85858f;   /* commentary */
-    --faint:     #5f5f69;
+    --ink:       #dedcd6;
+    --ink-soft:  #bab7ad;
+    --dim:       #8b877d;
+    --faint:     #625f57;
 
-    --accent:    #98a7e8;   /* periwinkle */
-    --accent-dk: #5c6fad;
-    --accent-sf: #b7c1f0;
+    --accent:    #c6a15b;   /* warm gold */
+    --accent-dk: #a07f39;   /* deeper gold — active fills */
+    --accent-sf: #dcc188;   /* light gold */
+    --on-accent: #1a1508;   /* text on gold */
 
-    --scripture: #ece7da;   /* warm parchment for verses */
-    --verse-bg:  rgba(152,167,232,0.08);
+    --scripture: #ece7da;   /* warm parchment */
+    --verse-bg:  rgba(198,161,91,0.09);
 
     --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
              "Times New Roman", serif;
@@ -38,7 +40,6 @@ html, body {
     background-color: var(--bg);
     overflow: hidden;
 }
-
 body {
     color: var(--ink);
     font-family: "Adobe Clean", "SF Pro Text", -apple-system, "Segoe UI", sans-serif;
@@ -46,7 +47,6 @@ body {
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
 }
-
 .app {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -54,29 +54,28 @@ body {
     flex-direction: column;
 }
 
-/* ---- Top navigation bar ------------------------------------------------- */
+/* ---- Top bar ------------------------------------------------------------ */
 
-.navbar {
+.topbar {
     display: flex;
     align-items: center;
-    height: 54px;
-    padding: 0 10px;
+    height: 50px;
+    padding: 0 8px;
     background-color: var(--bg-bar);
     border-bottom: 1px solid var(--hair);
 }
-
 .nav-btn {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     color: var(--dim);
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 300;
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+    transition: color 0.15s, background-color 0.15s, transform 0.1s;
 }
 .nav-btn:hover { color: var(--ink); background-color: var(--card); }
 .nav-btn:active { transform: scale(0.9); }
@@ -87,62 +86,78 @@ body {
     min-width: 0;
     text-align: center;
     cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 10px;
+    padding: 3px 6px;
+    border-radius: 9px;
 }
 .nav-center:hover { background-color: var(--card); }
-
-.mode-btn,
-.swap-btn {
-    width: 56px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 6px;
-    border-radius: 10px;
-    background-color: var(--card);
-    color: var(--dim);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-}
-.mode-btn:hover,
-.swap-btn:hover { color: var(--ink); background-color: rgba(152,167,232,0.15); }
-
 .nav-date {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--ink);
-    letter-spacing: 0.2px;
     text-transform: capitalize;
 }
 .nav-sub {
-    font-size: 9.5px;
+    font-size: 9px;
     color: var(--faint);
     letter-spacing: 2px;
-    margin-top: 2px;
+    margin-top: 1px;
 }
-.nav-center.is-today .nav-sub {
-    color: var(--accent);
+.nav-center.is-today .nav-sub { color: var(--accent); font-weight: 700; }
+
+.burger {
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--dim);
+    font-size: 17px;
+    cursor: pointer;
+}
+.burger:hover { color: var(--ink); background-color: var(--card); }
+.burger.open { color: var(--on-accent); background-color: var(--accent); }
+
+/* ---- Settings drawer ---------------------------------------------------- */
+
+.drawer {
+    padding: 10px 12px 4px;
+    background-color: var(--bg-bar);
+    border-bottom: 1px solid var(--hair);
+}
+.seg {
+    display: flex;
+    height: 30px;
+    margin-bottom: 8px;
+    padding: 2px;
+    background-color: var(--card);
+    border-radius: 9px;
+}
+.seg-opt {
+    flex-grow: 1; flex-shrink: 1; flex-basis: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    font-size: 11px;
     font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--dim);
+    cursor: pointer;
 }
+.seg-opt.active { background-color: var(--accent); color: var(--on-accent); }
 
-/* ---- Language segmented control ---------------------------------------- */
-
-.langbar {
+.langrow {
     display: flex;
     height: 28px;
-    margin: 10px 12px 4px;
+    margin-bottom: 8px;
     padding: 2px;
     background-color: var(--card);
     border-radius: 9px;
 }
 .lang-opt {
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: 0;
+    flex-grow: 1; flex-shrink: 1; flex-basis: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,19 +170,171 @@ body {
     transition: color 0.15s, background-color 0.15s;
 }
 .lang-opt:hover { color: var(--ink); }
-.lang-opt.active {
-    background-color: var(--accent-dk);
-    color: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+.lang-opt.active { background-color: var(--accent); color: var(--on-accent); }
+
+.swap-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 24px;
+    margin-left: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    color: var(--accent);
+    font-size: 14px;
+    cursor: pointer;
+}
+.swap-btn:hover { color: var(--on-accent); background-color: var(--accent); }
+
+/* ---- Scroll area -------------------------------------------------------- */
+
+.scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px 16px 6px;
 }
 
-/* Cards mode: bilingual, stepped. Top language and bottom language stacked,
-   split by a hairline — no language badges (you chose them, you know them). */
+/* ---- Full-day: lesson header ------------------------------------------- */
+
+.lesson-kicker {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 5px;
+}
+.lesson-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 14px;
+}
+.memverse {
+    background-color: var(--card);
+    border-radius: 8px;
+    padding: 12px 14px 13px;
+    margin-bottom: 20px;
+}
+.memverse .mv-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+}
+.memverse .mv-text {
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--scripture);
+}
+.memverse .mv-ref {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-sf);
+    margin-top: 7px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 2px 0 16px;
+    padding-bottom: 9px;
+}
+.section-title::after {
+    content: "";
+    display: block;
+    width: 34px;
+    height: 2px;
+    margin-top: 9px;
+    background-color: var(--accent-dk);
+    border-radius: 2px;
+}
+
+.qa {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--hair);
+}
+.qa:last-child { border-bottom: none; }
+.question {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+.vref {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+.verse {
+    background-color: var(--verse-bg);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 13px;
+    margin-bottom: 10px;
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.62;
+    color: var(--scripture);
+}
+.verse .vnum {
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    font-size: 8.5px;
+    color: var(--accent);
+    vertical-align: 3px;
+    margin: 0 3px 0 1px;
+}
+.verse.loading { color: var(--faint); font-family: inherit; }
+.verse.error { color: #c98; border-left-color: #c98; font-family: inherit; }
+
+.note {
+    position: relative;
+    font-size: 12.5px;
+    line-height: 1.62;
+    color: var(--dim);
+    padding-left: 14px;
+    margin-top: 10px;
+}
+.note::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 2px; bottom: 2px;
+    width: 1px;
+    background-color: var(--line);
+}
+.review-item {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-bottom: 12px;
+}
+.reading {
+    font-size: 12.5px;
+    color: var(--dim);
+    margin-top: 10px;
+    line-height: 1.5;
+}
+.reading .rd-label { font-weight: 600; color: var(--ink-soft); }
+
+/* ---- Cards mode --------------------------------------------------------- */
 
 .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
     margin-bottom: 14px;
 }
 .card-title {
@@ -176,15 +343,6 @@ body {
     font-weight: 600;
     line-height: 1.25;
     color: var(--ink);
-    margin-right: 10px;
-}
-.card-counter {
-    flex-shrink: 0;
-    font-size: 11px;
-    color: var(--faint);
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    font-variant-numeric: tabular-nums;
 }
 .card-shell {
     background-color: var(--card);
@@ -212,7 +370,7 @@ body {
     color: var(--scripture);
 }
 .c-verse.loading { color: var(--faint); }
-.c-verse.error   { color: #c8a; }
+.c-verse.error   { color: #c98; }
 .c-verse .vnum {
     font-family: -apple-system, sans-serif;
     font-weight: 700;
@@ -222,169 +380,43 @@ body {
     margin: 0 3px 0 1px;
 }
 
-/* ---- Scroll area -------------------------------------------------------- */
+/* ---- Bottom stepper (cards) -------------------------------------------- */
 
-.scroll {
+.stepbar {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 8px;
+    background-color: var(--bg-bar);
+    border-top: 1px solid var(--hair);
+}
+.step-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background-color: var(--card);
+    color: var(--accent);
+    font-size: 22px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: background-color 0.15s, transform 0.1s;
+}
+.step-btn:hover { background-color: var(--accent); color: var(--on-accent); }
+.step-btn:active { transform: scale(0.92); }
+.step-label {
     flex-grow: 1;
     flex-shrink: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 14px 16px 4px;
-}
-
-/* ---- Lesson header ------------------------------------------------------ */
-
-.lesson-kicker {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 5px;
-}
-.lesson-title {
-    font-family: var(--serif);
-    font-size: 22px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--ink);
-    margin-bottom: 14px;
-}
-
-/* Memory verse card */
-.memverse {
-    position: relative;
-    background-color: var(--card);
-    border-radius: 8px;
-    padding: 12px 14px 13px;
-    margin-bottom: 20px;
-}
-.memverse .mv-label {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 6px;
-}
-.memverse .mv-text {
-    font-family: var(--serif);
-    font-size: 15px;
-    line-height: 1.55;
-    color: var(--scripture);
-}
-.memverse .mv-ref {
+    min-width: 0;
+    text-align: center;
     font-size: 11px;
-    font-weight: 600;
-    color: var(--accent-sf);
-    margin-top: 7px;
-}
-
-/* ---- Day section -------------------------------------------------------- */
-
-.section-title {
-    font-size: 15px;
     font-weight: 700;
-    color: var(--ink);
-    margin: 2px 0 16px;
-    padding-bottom: 9px;
-}
-.section-title::after {
-    content: "";
-    display: block;
-    width: 34px;
-    height: 2px;
-    margin-top: 9px;
-    background-color: var(--accent-dk);
-    border-radius: 2px;
-}
-
-/* ---- Q & A block -------------------------------------------------------- */
-
-.qa {
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--hair);
-}
-.qa:last-child { border-bottom: none; }
-
-.question {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink);
-    line-height: 1.5;
-    margin-bottom: 10px;
-}
-
-.vref {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 4px;
-}
-
-/* the answer — scripture */
-.verse {
-    position: relative;
-    background-color: var(--verse-bg);
-    border-left: 2px solid var(--accent);
-    border-radius: 0 6px 6px 0;
-    padding: 10px 13px;
-    margin-bottom: 10px;
-    font-family: var(--serif);
-    font-size: 15px;
-    line-height: 1.62;
-    color: var(--scripture);
-}
-.verse .vnum {
-    font-family: -apple-system, sans-serif;
-    font-style: normal;
-    font-weight: 700;
-    font-size: 8.5px;
-    color: var(--accent);
-    vertical-align: 3px;
-    margin: 0 3px 0 1px;
-}
-.verse.loading { color: var(--faint); font-family: inherit; }
-.verse.error { color: #c8a; border-left-color: #c8a; font-family: inherit; }
-
-/* EGW / commentary note — tertiary, quote-styled */
-.note {
-    position: relative;
-    font-size: 12.5px;
-    line-height: 1.62;
-    color: var(--dim);
-    padding-left: 14px;
-    margin-top: 10px;
-}
-.note::before {
-    content: "";
-    position: absolute;
-    left: 0; top: 2px; bottom: 2px;
-    width: 1px;
-    background-color: var(--line);
-}
-
-/* Review questions (Friday) */
-.review-item {
-    font-size: 13.5px;
     color: var(--ink-soft);
-    line-height: 1.55;
-    margin-bottom: 12px;
-    padding-left: 2px;
 }
-
-/* Recommended reading */
-.reading {
-    font-size: 12.5px;
-    color: var(--dim);
-    margin-top: 10px;
-    line-height: 1.5;
-}
-.reading .rd-label { font-weight: 600; color: var(--ink-soft); }
 
 /* ---- States ------------------------------------------------------------- */
 
@@ -395,13 +427,12 @@ body {
     padding: 48px 24px;
     line-height: 1.6;
 }
-.msg.error { color: #c8a; }
-
+.msg.error { color: #c98; }
 .foot {
     text-align: center;
     font-size: 9px;
     letter-spacing: 1px;
     color: var(--faint);
-    padding: 16px 0 12px;
-    opacity: 0.6;
+    padding: 16px 0 10px;
+    opacity: 0.55;
 }

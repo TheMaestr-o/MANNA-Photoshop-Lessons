@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MANNA v1.3.0  — Daily Sabbath Bible Lesson for Photoshop (UXP)
+   MANNA v1.4.0  — Daily Sabbath Bible Lesson for Photoshop (UXP)
    © 2026 Sergio (Maestro). All rights reserved.
    --------------------------------------------------------------------------
    Lessons:  https://app.sdarm.org/sbl/data/<lang>/<lang>-<year>-<quarter>.json
@@ -37,6 +37,14 @@ const KIND = {
     review:     { de: "Wiederholung", en: "Review", ru: "Повторение" },
     memory:     { de: "Leittext", en: "Key Text", ru: "Памятный стих" }
 };
+// bottom-stepper label per step type (top language)
+const STEPWORD = {
+    question:   KIND.question,
+    commentary: KIND.commentary,
+    review:     KIND.review,
+    memory:     KIND.memory,
+    verse:      { de: "Vers", en: "Verse", ru: "Стих" }
+};
 
 /* ---------------- state ---------------- */
 
@@ -63,6 +71,8 @@ const navDate = $("nav-date");
 const navSub = $("nav-sub");
 const navCenter = $("nav-center");
 const footEl = $("foot");
+const stepbar = $("stepbar");
+const stepLabelEl = $("step-label");
 
 /* ---------------- date helpers ---------------- */
 
@@ -363,30 +373,37 @@ function renderCardStep(step) {
 }
 
 function renderCards(infoTop, infoBottom) {
-    if (infoTop.type === "offline") return { html: '<div class="msg error">' + esc(T.offline[lang]) + '</div>', tasks: [] };
-    if (infoTop.type === "none")    return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [] };
+    if (infoTop.type === "offline") return { html: '<div class="msg error">' + esc(T.offline[lang]) + '</div>', tasks: [], label: "" };
+    if (infoTop.type === "none")    return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [], label: "" };
 
     const ctx = ymd(current) + "|" + lang + "|" + bottomLang;
     if (cardContextKey !== ctx) {
         cardSteps = buildCardSteps(infoTop, infoBottom);
         cardContextKey = ctx;
     }
-    if (!cardSteps.length) return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [] };
+    if (!cardSteps.length) return { html: '<div class="msg">' + esc(T.none[lang]) + '</div>', tasks: [], label: "" };
     if (cardIndex < 0) cardIndex = cardSteps.length - 1;
     if (cardIndex >= cardSteps.length) cardIndex = 0;
 
     const step = cardSteps[cardIndex];
     let html = '<div class="card-header">';
     html += '<div class="card-title">' + esc((infoTop.lesson && infoTop.lesson.title) || "") + '</div>';
-    html += '<div class="card-counter">' + (cardIndex + 1) + ' / ' + cardSteps.length + '</div>';
     html += '</div>';
     html += renderCardStep(step);
+
+    let word;
+    if (step.type === "verse") {
+        word = (STEPWORD.verse[lang] || "") + " " + step.sOsis.split(".")[2];
+    } else {
+        word = (STEPWORD[step.kind] && STEPWORD[step.kind][lang]) || "";
+    }
+    const label = word + "  ·  " + (cardIndex + 1) + " / " + cardSteps.length;
 
     const tasks = step.type === "verse" ? [
         { id: vId(step.sOsis, lang), sOsis: step.sOsis, language: lang },
         { id: vId(step.sOsis, bottomLang), sOsis: step.sOsis, language: bottomLang }
     ] : [];
-    return { html, tasks };
+    return { html, tasks, label };
 }
 
 /* ---------------- render ---------------- */
@@ -416,6 +433,13 @@ async function render() {
     contentEl.innerHTML = result.html;
     footEl.textContent = "MANNA · Sabbath Bible Lessons";
 
+    if (currentMode === "cards" && result.label) {
+        stepLabelEl.textContent = result.label;
+        stepbar.classList.remove("hidden");
+    } else {
+        stepbar.classList.add("hidden");
+    }
+
     // fill verses asynchronously
     for (const t of result.tasks) {
         const taskLang = t.language || lang;
@@ -443,84 +467,87 @@ async function render() {
 
 /* ---------------- events ---------------- */
 
-$("prev").addEventListener("click", () => {
-    if (currentMode === "cards" && cardSteps.length) {
-        if (cardIndex <= 0) { current = addDays(current, -1); cardIndex = -1; }
-        else cardIndex--;
-        render();
-        return;
-    }
-    current = addDays(current, -1);
+// Top arrows = change the day (both modes). Center = jump to today.
+$("prev").addEventListener("click", () => { current = addDays(current, -1); cardIndex = 0; render(); });
+$("next").addEventListener("click", () => { current = addDays(current, 1); cardIndex = 0; render(); });
+navCenter.addEventListener("click", () => { current = new Date(); cardIndex = 0; render(); });
+
+// Bottom stepper = step through the cards, rolling into days at the ends.
+$("step-prev").addEventListener("click", () => {
+    if (!cardSteps.length) return;
+    if (cardIndex <= 0) { current = addDays(current, -1); cardIndex = -1; }
+    else cardIndex--;
     render();
 });
-$("next").addEventListener("click", () => {
-    if (currentMode === "cards" && cardSteps.length) {
-        if (cardIndex >= cardSteps.length - 1) { current = addDays(current, 1); cardIndex = 0; }
-        else cardIndex++;
-        render();
-        return;
-    }
-    current = addDays(current, 1);
-    render();
-});
-navCenter.addEventListener("click", () => {
-    current = new Date();
-    cardIndex = 0;
+$("step-next").addEventListener("click", () => {
+    if (!cardSteps.length) return;
+    if (cardIndex >= cardSteps.length - 1) { current = addDays(current, 1); cardIndex = 0; }
+    else cardIndex++;
     render();
 });
 
-$("mode-toggle").addEventListener("click", () => {
-    currentMode = currentMode === "cards" ? "full" : "cards";
-    localStorage.setItem("manna.mode", currentMode);
-    cardIndex = 0;
-    cardContextKey = "";
-    setModeUI();
-    render();
-});
-$("swap-lang").addEventListener("click", () => {
-    const tmp = lang; lang = bottomLang; bottomLang = tmp;
-    localStorage.setItem("manna.lang", lang);
-    localStorage.setItem("manna.lang2", bottomLang);
-    cardContextKey = "";
-    setLangUI();
-    setModeUI();
-    render();
+// Burger → settings drawer
+$("burger").addEventListener("click", () => {
+    const open = $("drawer").classList.toggle("hidden") === false;
+    $("burger").classList.toggle("open", open);
 });
 
-document.querySelectorAll(".lang-opt:not(.lang2-opt)").forEach((el) => {
+// Mode segmented control
+document.querySelectorAll(".seg-opt").forEach((el) => {
+    el.addEventListener("click", () => {
+        const m = el.dataset.mode;
+        if (m === currentMode) return;
+        currentMode = m;
+        localStorage.setItem("manna.mode", currentMode);
+        cardIndex = 0;
+        cardContextKey = "";
+        setModeUI();
+        render();
+    });
+});
+
+// Top language row
+document.querySelectorAll("#langrow-top .lang-opt").forEach((el) => {
     el.addEventListener("click", () => {
         const l = el.dataset.lang;
         if (l === lang) return;
-        if (l === bottomLang) bottomLang = lang; // swap instead of colliding
+        if (l === bottomLang) bottomLang = lang;   // swap instead of colliding
         lang = l;
         localStorage.setItem("manna.lang", lang);
         localStorage.setItem("manna.lang2", bottomLang);
         cardContextKey = "";
         setLangUI();
-        setModeUI();
         render();
     });
 });
+// Bottom language row
 document.querySelectorAll(".lang2-opt").forEach((el) => {
     el.addEventListener("click", () => {
         const l = el.dataset.lang;
         if (l === bottomLang) return;
-        if (l === lang) lang = bottomLang; // swap instead of colliding
+        if (l === lang) lang = bottomLang;          // swap instead of colliding
         bottomLang = l;
         localStorage.setItem("manna.lang", lang);
         localStorage.setItem("manna.lang2", bottomLang);
         cardContextKey = "";
         setLangUI();
-        setModeUI();
         render();
     });
+});
+$("swap-lang").addEventListener("click", () => {
+    const t = lang; lang = bottomLang; bottomLang = t;
+    localStorage.setItem("manna.lang", lang);
+    localStorage.setItem("manna.lang2", bottomLang);
+    cardContextKey = "";
+    setLangUI();
+    render();
 });
 
 /* ---------------- ui state ---------------- */
 
 function setLangUI() {
     normalizeBottomLang();
-    document.querySelectorAll(".lang-opt:not(.lang2-opt)").forEach((el) => {
+    document.querySelectorAll("#langrow-top .lang-opt").forEach((el) => {
         el.classList.toggle("active", el.dataset.lang === lang);
     });
     document.querySelectorAll(".lang2-opt").forEach((el) => {
@@ -529,12 +556,11 @@ function setLangUI() {
 }
 
 function setModeUI() {
-    const modeBtn = $("mode-toggle");
-    const swapBtn = $("swap-lang");
-    if (!modeBtn || !swapBtn) return;
-    modeBtn.textContent = currentMode === "cards" ? T.day[lang] : T.cards[lang];
-    $("langbar-alt").classList.toggle("hidden", currentMode !== "cards");
-    swapBtn.classList.toggle("hidden", currentMode !== "cards");
+    document.querySelectorAll(".seg-opt").forEach((el) => {
+        el.classList.toggle("active", el.dataset.mode === currentMode);
+    });
+    $("langrow-bot").classList.toggle("hidden", currentMode !== "cards");
+    if (currentMode !== "cards") stepbar.classList.add("hidden");
 }
 
 /* ---------------- init ---------------- */

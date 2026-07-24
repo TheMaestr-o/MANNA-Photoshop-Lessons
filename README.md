@@ -8,10 +8,10 @@
 
 <br>
 
-![Version](https://img.shields.io/badge/version-1.3.0-8b9ce0?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.0-c6a15b?style=flat-square)
 ![Photoshop](https://img.shields.io/badge/Photoshop-2025%20%7C%202026-2d2d2d?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-UXP-2d2d2d?style=flat-square)
-![Languages](https://img.shields.io/badge/DE%20%C2%B7%20EN%20%C2%B7%20RU-8b9ce0?style=flat-square)
+![Languages](https://img.shields.io/badge/DE%20%C2%B7%20EN%20%C2%B7%20RU-c6a15b?style=flat-square)
 ![License](https://img.shields.io/badge/license-Free-4caf50?style=flat-square)
 
 <br>
@@ -36,9 +36,10 @@ A quiet reading panel that brings **today's** Sabbath Bible Lesson into Photosho
 
 | | |
 |---|---|
-| **‹ ›** | Step through the day. In cards mode each tap is one step; crossing into the next day is seamless |
-| **Date** | Tap the date to jump back to **today** |
-| **DE · EN · RU** | Pick your language — in cards mode pick two (top and bottom), **⇅** swaps them |
+| **‹ date ›** | The top arrows change the **day**. Tap the date to jump back to **today** — and the panel always opens on today automatically |
+| **≡** | The burger opens settings: switch **DAY / CARDS**, and pick your language(s) |
+| **‹ — ›** (bottom) | In cards mode, the bottom stepper flips through the day — **question → verse → verse → commentary** — one card at a time |
+| **DE · EN · RU** | In cards mode pick two languages (top and bottom); **⇅** swaps them |
 | **Scripture** | Exact SDARM text: Luther 1912 (DE), King James (EN), Synodal (RU) |
 
 The current quarter is cached, so once opened it also works offline.
